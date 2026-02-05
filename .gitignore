@@ -1,0 +1,6 @@
+mkdocs
+mkdocs.yml.old
+site
+.gitbook
+.obsidian
+htb-date-fixer.py

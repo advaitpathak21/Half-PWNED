@@ -1,0 +1,6 @@
+- `log`
+- `privilege::debug`
+- `lsadump::secrets`
+- If **errors**:
+	- `token::elevate`
+- `sekurlsa::logonpasswords`
