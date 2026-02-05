@@ -59,6 +59,7 @@ plugins:
 #   - Home: docs/
 #   - About Me: about/about.md
 #   - Blog: blog/
+#   - Projects: projects/projects.md
 
 extra:
   social:
