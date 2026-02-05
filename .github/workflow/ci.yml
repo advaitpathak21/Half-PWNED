@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Crucial for plugins like navsorted
 
       - name: Configure Python
         uses: actions/setup-python@v5
@@ -22,5 +24,8 @@ jobs:
         run: |
           pip install mkdocs-material mkdocs-navsorted-plugin
 
-      - name: Build and Deploy
-        run: mkdocs gh-deploy --force
+      - name: Deploy
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          mkdocs gh-deploy --force --clean
