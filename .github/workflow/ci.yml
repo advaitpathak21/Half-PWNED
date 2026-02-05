@@ -1,4 +1,4 @@
-name: Deploy Notes to GitHub Pages
+name: Deploy Half-PWNED to GitHub Pages
 
 on:
   push:
