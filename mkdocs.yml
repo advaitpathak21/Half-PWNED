@@ -60,6 +60,9 @@ plugins:
 #   - About Me: about/about.md
 #   - Blog: blog/
 
+extra_javascript:
+  - javascript/visitor-counter.js
+
 extra:
   social:
     - icon: material/github

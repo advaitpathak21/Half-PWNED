@@ -3,6 +3,9 @@
 
 Welcome to my central repository for security research and machine writeups. This site is divided into core `technical playbooks` and a `blog` of some HackTheBox labs I've pwned, my projects.
 
+## Visitor Stats
+You are visitor number: <span id="visitor-counter">Loading...</span>
+
 <hr>
 
 ## Methodology and Playbooks 📚
