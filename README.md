@@ -4,7 +4,7 @@
 - This project is a cloud-native, serverless website deployed on AWS. The goal was to design, deploy, and secure a high-availability infrastructure using AWS best practices.
 - This is an extension to the original Cloud Resume Challenge [Here](https://github.com/advaitpathak21/cloud-resume) as I have deployed another app in the same infrastructure.
 
-![Cloud Resume Challenge Architecture](/Half-PWNED/docs/attachments/assets/CRC_v3.jpg)
+![Cloud Resume Challenge Architecture](/docs/attachments/assets/CRC_v3.jpg)
 
 ## Infrastructure Implementation
 The infrastructure was built manually using a security-first approach to ensure high availability and data integrity.
