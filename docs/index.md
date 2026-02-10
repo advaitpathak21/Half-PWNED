@@ -3,6 +3,8 @@
 
 Welcome to my central repository for security research and machine writeups. This site is divided into core `technical playbooks` and a `blog` of some HackTheBox labs I've pwned, my projects.
 
+### Check my website out - [here](https://website.advaitpathak.com).
+
 <hr>
 
 ## Methodology and Playbooks 📚
